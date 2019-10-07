@@ -1,4 +1,5 @@
 #include "HX711.h"
+#include "wcmcu_2317_util.h"
 
 #define MANOMETER_DOUT_PIN1  4
 #define MANOMETER_SCK_PIN1   5
@@ -200,7 +201,11 @@ bool state_invalid () {
 void setup() {
 
   Serial.begin(38400);
-
+  
+  Wire.begin(); // wake up I2C bus
+  set_BUS_mode (BUS_A, BUS_OUTPUT);
+  set_BUS_mode (BUS_B, BUS_INPUT);
+  
   pinMode (SPUST1,OUTPUT);
   pinMode (SPUST2,OUTPUT);
   pinMode (SPUST3,OUTPUT);
@@ -247,4 +252,10 @@ void loop() {
     state = ( state + 1 ) % cycle_len;
     set_state();
   }
+/* example from wcmcu_2317_util lib to implement actual remote control
+  bool isPushed = BUS_read (BUS_B,4);
+  Serial.println(isPushed);
+  BUS_write(BUS_A,1,isPushed);
+  */
+  
 }
