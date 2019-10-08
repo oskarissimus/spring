@@ -21,17 +21,21 @@
 #define WPUST2    13
 #define WPUST3    A0
 
-int LED_PIN[] = {10,9,8};
+int INTENSITY_LED_PIN[] = {10,9,8};
 #define LED_GRN 0
 #define LED_YLW 1
 #define LED_RED 2
 
+int PROGRAM_LED_PIN[] = {11,12};
+#define LED_PLS 0
+#define LED_CON 1
+
 Adafruit_MCP23017 mcp;
-/*
+
 HX711 mankiet1;
 HX711 mankiet2;
 HX711 mankiet3;
-*/
+
 /*
  *     K - kompresor        - OFF/ON
  * W1-W3 - zawór wpustowy   - CLOSE/OPEN
@@ -197,8 +201,8 @@ void set_state () {
   }
 }
 
-bool state_invalid () {return false; }
-/*  long  P1 = mankiet1.get_units(5);
+bool state_invalid () {//return false; }
+  long  P1 = mankiet1.get_units(5);
   long  P2 = mankiet2.get_units(5);
   long  P3 = mankiet3.get_units(5);
   long unsigned T1 = get_timer_val(1);
@@ -218,7 +222,7 @@ bool state_invalid () {return false; }
           T1 > prog[program][intensity][state][10] ||
           T2 > prog[program][intensity][state][11]   );
 }
-*/
+
 void setup() {
 
   Serial.begin(38400);
@@ -228,9 +232,12 @@ void setup() {
   mcp.pinMode(click_pin[INTENSITY_PIN_IDX], INPUT);
   mcp.pinMode(click_pin[PROGRAM_PIN_IDX]  , INPUT);
 
-  mcp.pinMode(LED_PIN[0], OUTPUT);
-  mcp.pinMode(LED_PIN[1], OUTPUT);
-  mcp.pinMode(LED_PIN[2], OUTPUT);
+  mcp.pinMode(INTENSITY_LED_PIN[0], OUTPUT);
+  mcp.pinMode(INTENSITY_LED_PIN[1], OUTPUT);
+  mcp.pinMode(INTENSITY_LED_PIN[2], OUTPUT);
+
+  mcp.pinMode(PROGRAM_LED_PIN[0], OUTPUT);
+  mcp.pinMode(PROGRAM_LED_PIN[1], OUTPUT);
 
   pinMode (SPUST1,OUTPUT);
   pinMode (SPUST2,OUTPUT);
@@ -251,7 +258,7 @@ void setup() {
   digitalWrite(SPUST3, LOW);
 
   digitalWrite(KOMPRESOR_PIN, HIGH);
-/*
+
   mankiet1.begin(MANOMETER_DOUT_PIN1, MANOMETER_SCK_PIN1, 64);
   mankiet2.begin(MANOMETER_DOUT_PIN2, MANOMETER_SCK_PIN2, 64);
   mankiet3.begin(MANOMETER_DOUT_PIN3, MANOMETER_SCK_PIN3, 64); 
@@ -269,7 +276,7 @@ void setup() {
   
   delay(2000);
   set_state();
-*/
+
 }
 
 
@@ -290,10 +297,14 @@ bool get_click(int click_idx) {
 
 
 void display_intensity() {
+  mcp.digitalWrite(INTENSITY_LED_PIN[intensity],LOW);
+  mcp.digitalWrite(INTENSITY_LED_PIN[(intensity+1)%3],HIGH);
+  mcp.digitalWrite(INTENSITY_LED_PIN[(intensity+2)%3],HIGH);
+}
 
-  mcp.digitalWrite(LED_PIN[intensity],LOW);
-  mcp.digitalWrite(LED_PIN[(intensity+1)%3],HIGH);
-  mcp.digitalWrite(LED_PIN[(intensity+2)%3],HIGH);
+void display_program() {
+  mcp.digitalWrite(PROGRAM_LED_PIN[program],LOW);
+  mcp.digitalWrite(PROGRAM_LED_PIN[(program+1)%2],HIGH);
 }
 
 void loop() {
@@ -302,6 +313,7 @@ void loop() {
   program   = ( program   + get_click(PROGRAM_PIN_IDX  ) ) % 2;
 
   display_intensity();
+  display_program();
 
   Serial.print(intensity);
   Serial.print(" ");
@@ -313,10 +325,5 @@ void loop() {
     set_state();
   }
   
-/* example from wcmcu_2317_util lib to implement actual remote control
-  bool isPushed = BUS_read (BUS_B,4);
-  Serial.println(isPushed);
-  BUS_write(BUS_A,1,isPushed);
-  */
   
 }
